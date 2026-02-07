@@ -230,6 +230,38 @@ export const apiClient = {
   },
 
   /**
+   * Confirm email verification
+   */
+  async confirm(token: string): Promise<{ success: boolean; message?: string }> {
+    try {
+      const response = await fetchWithTimeout(
+        `${API_BASE}/auth/confirm`,
+        {
+          method: 'POST',
+          mode: 'cors',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ token }),
+        },
+        REQUEST_TIMEOUT,
+        'omit'
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        console.warn('Email confirmation failed:', errorData);
+        return { success: false, message: errorData.detail || 'Confirmation failed' };
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.warn('Network error during email confirmation', error);
+      return { success: false, message: 'Network error during confirmation' };
+    }
+  },
+
+  /**
    * Logout from the backend
    */
   async logout(token: string): Promise<{ success: boolean }> {

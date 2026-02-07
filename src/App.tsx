@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
+import Confirm from "./pages/Confirm";
 import Scan from "./pages/Scan";
 import Compare from "./pages/Compare";
 import Profile from "./pages/Profile";
@@ -24,6 +25,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/confirm" element={<Confirm />} />
             <Route path="/scan" element={<Scan />} />
             <Route path="/compare" element={<Compare />} />
             <Route path="/profile" element={<Profile />} />
