@@ -50,12 +50,13 @@ let isRefreshing = false;
 let refreshPromise: Promise<AuthResponse> | null = null;
 
 /**
- * Creates a fetch request with timeout support
+ * Creates a fetch request with timeout support and CORS handling
  */
 async function fetchWithTimeout(
   url: string,
   options: RequestInit = {},
-  timeout: number = REQUEST_TIMEOUT
+  timeout: number = REQUEST_TIMEOUT,
+  credentials: RequestCredentials = 'omit'
 ): Promise<Response> {
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), timeout);
@@ -63,6 +64,7 @@ async function fetchWithTimeout(
   try {
     const response = await fetch(url, {
       ...options,
+      credentials,
       signal: controller.signal,
     });
     return response;
@@ -89,7 +91,7 @@ async function fetchWithAuth(
     };
   }
 
-  const response = await fetchWithTimeout(url, options, timeout);
+  const response = await fetchWithTimeout(url, options, timeout, 'include');
 
   // If 401/403 and we have a refresh token, try to refresh
   if ((response.status === 401 || response.status === 403) && retryOnAuthFailure) {
@@ -148,9 +150,9 @@ export const apiClient = {
     try {
       const response = await fetchWithTimeout(`${API_BASE}/auth/login`, {
         method: 'POST',
+        mode: 'cors',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json',
         },
         body: JSON.stringify(credentials),
       });
@@ -178,9 +180,9 @@ export const apiClient = {
     try {
       const response = await fetchWithTimeout(`${API_BASE}/auth/sign_up`, {
         method: 'POST',
+        mode: 'cors',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json',
         },
         body: JSON.stringify(credentials),
       });
@@ -208,9 +210,9 @@ export const apiClient = {
     try {
       const response = await fetchWithTimeout(`${API_BASE}/auth/refresh`, {
         method: 'POST',
+        mode: 'cors',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json',
         },
         body: JSON.stringify({ refresh_token: refreshToken }),
       });
@@ -232,13 +234,18 @@ export const apiClient = {
    */
   async logout(token: string): Promise<{ success: boolean }> {
     try {
-      const response = await fetchWithTimeout(`${API_BASE}/auth/logout`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/json',
+      const response = await fetchWithTimeout(
+        `${API_BASE}/auth/logout`,
+        {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json',
+          },
         },
-      });
+        REQUEST_TIMEOUT,
+        'include'
+      );
 
       if (!response.ok) {
         console.warn('Logout failed on server');
