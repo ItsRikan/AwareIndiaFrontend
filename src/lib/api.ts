@@ -91,7 +91,7 @@ async function fetchWithAuth(
     };
   }
 
-  const response = await fetchWithTimeout(url, options, timeout, 'include');
+  const response = await fetchWithTimeout(url, options, timeout, 'omit');
 
   // If 401/403 and we have a refresh token, try to refresh
   if ((response.status === 401 || response.status === 403) && retryOnAuthFailure) {
@@ -238,13 +238,13 @@ export const apiClient = {
         `${API_BASE}/auth/logout`,
         {
           method: 'POST',
+          mode: 'cors',
           headers: {
             'Authorization': `Bearer ${token}`,
-            'Accept': 'application/json',
           },
         },
         REQUEST_TIMEOUT,
-        'include'
+        'omit'
       );
 
       if (!response.ok) {
@@ -264,11 +264,10 @@ export const apiClient = {
    */
   async getImageKitAuth(): Promise<ImageKitAuthResponse> {
     try {
-      const response = await fetchWithAuth(`${API_BASE}/imagekit/auth`, {
-        headers: {
-          'Accept': 'application/json',
-        }
-      });
+      const response = await fetchWithTimeout(`${API_BASE}/imagekit/auth`, {
+        method: 'GET',
+        mode: 'cors',
+      }, REQUEST_TIMEOUT, 'omit');
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -389,9 +388,9 @@ export const apiClient = {
     try {
       const response = await fetchWithAuth(`${API_BASE}/scan`, {
         method: 'POST',
+        mode: 'cors',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json',
         },
         body: JSON.stringify(request),
       });
@@ -432,9 +431,7 @@ export const apiClient = {
   async getHistory(): Promise<HistoryItem[]> {
     try {
       const response = await fetchWithAuth(`${API_BASE}/history`, {
-        headers: {
-          'Accept': 'application/json',
-        },
+        mode: 'cors',
       });
 
       if (!response.ok) {
@@ -485,9 +482,9 @@ export const apiClient = {
 
       const response = await fetchWithAuth(`${API_BASE}/comapre`, {
         method: 'POST',
+        mode: 'cors',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json',
         },
         body: JSON.stringify(compareRequest),
       });
