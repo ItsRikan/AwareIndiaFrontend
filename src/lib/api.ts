@@ -16,7 +16,7 @@ import ImageKit from "imagekit-javascript";
 import { authTokenService } from './authTokenService';
 
 // API base URL - configurable via environment variable
-const API_BASE = import.meta.env.VITE_API_BASE || 'https://aware-india-backend-nogs.vercel.app/';
+const API_BASE = import.meta.env.VITE_API_BASE || 'https://aware-india-backend-nogs.vercel.app';
 
 // ImageKit Configuration
 const IMAGEKIT_PUBLIC_KEY = import.meta.env.VITE_IMAGEKIT_PUBLIC_KEY;
