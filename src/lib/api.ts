@@ -512,7 +512,7 @@ export const apiClient = {
         usecase: usecase || ""
       };
 
-      const response = await fetchWithAuth(`${API_BASE}/comapre`, {
+      const response = await fetchWithAuth(`${API_BASE}/compare`, {
         method: 'POST',
         mode: 'cors',
         headers: {
