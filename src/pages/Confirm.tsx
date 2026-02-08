@@ -72,7 +72,7 @@ export default function ConfirmPage() {
               </motion.div>
               <h1 className="text-2xl font-bold mb-2 text-safe">Email Confirmed!</h1>
               <p className="text-muted-foreground mb-6">
-                Your email has been successfully verified. Redirecting to login…
+                Your email has been successfully verified. Please log in with your credentials to continue.
               </p>
               <Button onClick={() => navigate('/login')} className="w-full">
                 Go to Login
