@@ -314,7 +314,12 @@ export const apiClient = {
   },
 
   /**
-   * Upload image using ImageKit SDK
+   * Upload image using ImageKit SDK with retry logic and fallback to backend endpoint
+   * 
+   * Flow:
+   * 1. Try to upload directly to ImageKit using credentials from /imagekit/auth
+   * 2. Retry once if network error occurs
+   * 3. If direct upload fails, fallback to /imagekit/upload backend endpoint
    */
   async uploadImage(
     file: File,
@@ -324,75 +329,140 @@ export const apiClient = {
       // Fetch auth params from backend
       const authParams = await this.getImageKitAuth();
 
-      // Check for mock mode from backend
-      if (authParams.mock_mode) {
-        console.log('Backend signaled mock mode for upload');
-        const mockRes = await this.mockUpload(file);
-        return mockRes.image_url;
-      }
-
-      // Determine usage instance
-      let instance = imageKitInstance;
-
-      // If global instance is missing (no env vars), try to create one with keys from backend
-      if (!instance) {
-        if (authParams.publicKey && authParams.urlEndpoint) {
-          instance = new ImageKit({
-            publicKey: authParams.publicKey,
-            urlEndpoint: authParams.urlEndpoint,
-          } as any);
-        } else {
-          // Fallback to mock upload if ImageKit is not configured and keys not provided
-          console.warn('ImageKit keys missing in env and response, falling back to mock upload');
-          const mockRes = await this.mockUpload(file);
-          return mockRes.image_url;
-        }
-      }
-
-      return new Promise((resolve, reject) => {
-        // Unfortunately the SDK doesn't expose progress easily in the main method signature provided in docs,
-        // but it does verify auth. 
-        // We can fake progress or just wait.
-        if (onProgress) onProgress(10); // Start
-
-        if (!authParams.token || !authParams.signature || !authParams.expire) {
-          reject(new ApiError('Missing authentication parameters for ImageKit upload'));
-          return;
-        }
-
-        instance!.upload({
-          file: file,
-          fileName: file.name,
-          useUniqueFileName: true,
-          token: authParams.token,
-          signature: authParams.signature,
-          expire: authParams.expire,
-        } as any, (err: any, result: any) => {
-          if (err) {
-            console.error("ImageKit Upload Error", err);
-            reject(new ApiError('Image upload failed: ' + (err.message || 'Unknown error')));
-            return;
+      // Try to upload directly to ImageKit (with 1 retry for network errors)
+      let lastError: Error | null = null;
+      for (let attempt = 1; attempt <= 2; attempt++) {
+        try {
+          if (attempt === 2 && onProgress) {
+            onProgress(5); // Reset progress for retry
           }
-          if (onProgress) onProgress(100);
-          resolve(result.url);
-        });
-      });
+          const imageUrl = await this.uploadToImageKit(file, authParams, onProgress);
+          return imageUrl;
+        } catch (imagekitError) {
+          lastError = imagekitError as Error;
+          console.warn(`ImageKit upload attempt ${attempt} failed:`, imagekitError);
+          
+          // Only retry on network errors, not on auth/config errors
+          const errorMsg = (imagekitError as any)?.message || '';
+          const isNetworkError = errorMsg.includes('network') || errorMsg.includes('ERR_');
+          
+          if (attempt === 2 || !isNetworkError) {
+            // Final attempt or not a network error - break and try fallback
+            break;
+          }
+          
+          // Wait before retry
+          await new Promise(resolve => setTimeout(resolve, 500));
+        }
+      }
+
+      // Direct ImageKit upload failed, fallback to backend endpoint
+      console.warn('Direct ImageKit uploads exhausted, falling back to backend endpoint:', lastError);
+      if (onProgress) onProgress(50); // Progress update before fallback
+      
+      try {
+        const mockRes = await this.mockUpload(file);
+        if (onProgress) onProgress(100);
+        return mockRes.image_url;
+      } catch (fallbackError) {
+        console.error('Fallback upload also failed:', fallbackError);
+        // If fallback fails, throw original ImageKit error
+        throw lastError || new ApiError('Image upload failed - all methods exhausted');
+      }
     } catch (error) {
-      console.error('Error during image upload setup:', error);
-      // Fallback to mock upload if auth fails? Or just rethrow?
-      // For now, let's rethrow to inform the user, but maybe fallback if strictly network?
+      console.error('Error during image upload:', error);
       if (error instanceof ApiError) throw error;
       throw new ApiError('Image upload failed');
     }
   },
 
   /**
-   * Upload image to mock endpoint (when mock_mode is true or fallback)
+   * Direct upload to ImageKit using SDK with improved error handling
+   */
+  async uploadToImageKit(
+    file: File,
+    authParams: ImageKitAuthResponse,
+    onProgress?: (progress: number) => void
+  ): Promise<string> {
+    if (!authParams.token || !authParams.signature || !authParams.expire) {
+      throw new ApiError('Missing authentication parameters for ImageKit upload');
+    }
+
+    // Validate token expiration
+    const currentTime = Math.floor(Date.now() / 1000);
+    if (authParams.expire <= currentTime) {
+      throw new ApiError('ImageKit authentication token expired');
+    }
+
+    // Determine usage instance
+    let instance = imageKitInstance;
+
+    // If global instance is missing (no env vars), create one with keys from backend
+    if (!instance) {
+      if (!authParams.publicKey || !authParams.urlEndpoint) {
+        throw new ApiError('ImageKit configuration missing');
+      }
+      instance = new ImageKit({
+        publicKey: authParams.publicKey,
+        urlEndpoint: authParams.urlEndpoint,
+      } as any);
+    }
+
+    return new Promise((resolve, reject) => {
+      if (onProgress) onProgress(10); // Start
+
+      // Add timeout mechanism (30 seconds for upload)
+      const uploadTimeout = setTimeout(() => {
+        reject(new ApiError('ImageKit upload timeout', undefined, 'TIMEOUT'));
+      }, 30000);
+
+      instance!.upload({
+        file: file,
+        fileName: file.name,
+        useUniqueFileName: true,
+        token: authParams.token,
+        signature: authParams.signature,
+        expire: authParams.expire,
+      } as any, (err: any, result: any) => {
+        clearTimeout(uploadTimeout);
+
+        if (err) {
+          console.error("ImageKit Upload Error", err);
+          
+          // Better error messaging for network issues
+          let errorMsg = 'ImageKit upload failed';
+          if (err.message) {
+            errorMsg += ': ' + err.message;
+          }
+          if (err.code) {
+            errorMsg += ` (${err.code})`;
+          }
+          
+          reject(new ApiError(errorMsg));
+          return;
+        }
+
+        if (!result || !result.url) {
+          reject(new ApiError('ImageKit upload succeeded but no URL returned'));
+          return;
+        }
+
+        if (onProgress) onProgress(100);
+        resolve(result.url);
+      });
+    });
+  },
+
+  /**
+   * Upload image to backend endpoint (fallback when direct ImageKit fails)
+   * This endpoint should handle the image upload serverside
    */
   async mockUpload(file: File): Promise<MockUploadResponse> {
     try {
       const formData = new FormData();
       formData.append('file', file);
+
+      console.log('Attempting fallback upload to backend /imagekit/upload');
 
       const response = await fetchWithAuth(`${API_BASE}/imagekit/upload`, {
         method: 'POST',
@@ -400,16 +470,36 @@ export const apiClient = {
       });
 
       if (!response.ok) {
-        throw new ApiError('Failed to upload image', response.status);
+        const statusText = response.statusText || 'Unknown error';
+        const errorMsg = `Backend upload failed with status ${response.status} (${statusText})`;
+        console.error(errorMsg);
+        
+        // Try to get error details from response
+        let detail = '';
+        try {
+          const errorData = await response.json();
+          detail = errorData.detail || errorData.message || '';
+        } catch (e) {
+          // Response was not JSON
+        }
+        
+        throw new ApiError(detail || errorMsg, response.status);
       }
 
-      return await response.json();
+      const result = await response.json();
+      
+      if (!result.image_url) {
+        throw new ApiError('Backend upload succeeded but no image_url returned');
+      }
+
+      return result;
     } catch (error) {
       if (error instanceof ApiError) throw error;
       if (error instanceof Error && error.name === 'AbortError') {
         throw new ApiError('Upload timeout - please try again', undefined, 'TIMEOUT');
       }
-      throw new ApiError('Failed to upload image - please try again');
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      throw new ApiError(`Failed to upload image: ${errorMsg}`);
     }
   },
 
