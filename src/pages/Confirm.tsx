@@ -88,13 +88,10 @@ export default function ConfirmPage() {
                 transition={{ delay: 0.2 }}
                 className="flex justify-center mb-6"
               >
-                <AlertCircle className="w-16 h-16 text-danger" />
+                <AlertCircle className="w-16 h-16" />
               </motion.div>
-              <h1 className="text-2xl font-bold mb-2 text-danger">Confirmation Failed</h1>
-              <p className="text-muted-foreground mb-4">{errorMessage}</p>
-              <p className="text-sm text-muted-foreground mb-6">
-                Please try requesting a new confirmation link or contact support.
-              </p>
+              <h1 className="text-2xl font-bold mb-2">Confirmation</h1>
+              <p className="text-muted-foreground mb-6">{errorMessage}</p>
               <Button onClick={() => navigate('/login')} className="w-full">
                 Back to Login
               </Button>
