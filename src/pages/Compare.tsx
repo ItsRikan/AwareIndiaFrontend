@@ -20,16 +20,37 @@ import {
 import { apiClient, ApiError } from '@/lib/api';
 import { compressImage, createImagePreview, revokeImagePreview } from '@/lib/image';
 import { CompareResult, SCAN_CATEGORIES, ScanCategory } from '@/types';
-import { GitCompare, AlertCircle, Info, RotateCcw } from 'lucide-react';
+import { GitCompare, AlertCircle, Info, Sparkles, Scale, ArrowRightLeft, Target, Zap } from 'lucide-react';
 import { toast } from 'sonner';
 
 type CompareState = 'idle' | 'uploading' | 'comparing' | 'complete' | 'error';
+
+// Floating Element Component
+function FloatingElement({ delay, duration, x, y, children }: { delay: number, duration: number, x: number, y: number, children: React.ReactNode }) {
+    return (
+        <motion.div
+            initial={{ x: 0, y: 0 }}
+            animate={{
+                x: [0, x, 0],
+                y: [0, y, 0],
+            }}
+            transition={{
+                duration: duration,
+                repeat: Infinity,
+                ease: "easeInOut",
+                delay: delay
+            }}
+            className="absolute pointer-events-none"
+        >
+            {children}
+        </motion.div>
+    );
+}
 
 export default function Compare() {
     const { isAuthenticated, isLoading: authLoading } = useAuth();
     const navigate = useNavigate();
 
-    // Redirect if not authenticated
     useEffect(() => {
         if (!authLoading && !isAuthenticated) {
             navigate('/login');
@@ -55,7 +76,6 @@ export default function Compare() {
     const [result, setResult] = useState<CompareResult | null>(null);
     const [error, setError] = useState<string | null>(null);
 
-    // Clean up preview URLs on unmount
     useEffect(() => {
         return () => {
             if (previewUrl1) revokeImagePreview(previewUrl1);
@@ -67,8 +87,6 @@ export default function Compare() {
         if (previewUrl1) revokeImagePreview(previewUrl1);
         setSelectedFile1(file);
         setPreviewUrl1(createImagePreview(file));
-        setResult(null);
-        setError(null);
         setCompareState('idle');
     }, [previewUrl1]);
 
@@ -76,8 +94,6 @@ export default function Compare() {
         if (previewUrl2) revokeImagePreview(previewUrl2);
         setSelectedFile2(file);
         setPreviewUrl2(createImagePreview(file));
-        setResult(null);
-        setError(null);
         setCompareState('idle');
     }, [previewUrl2]);
 
@@ -85,8 +101,6 @@ export default function Compare() {
         if (previewUrl1) revokeImagePreview(previewUrl1);
         setSelectedFile1(null);
         setPreviewUrl1(null);
-        setResult(null);
-        setError(null);
         setCompareState('idle');
     }, [previewUrl1]);
 
@@ -94,8 +108,6 @@ export default function Compare() {
         if (previewUrl2) revokeImagePreview(previewUrl2);
         setSelectedFile2(null);
         setPreviewUrl2(null);
-        setResult(null);
-        setError(null);
         setCompareState('idle');
     }, [previewUrl2]);
 
@@ -110,53 +122,44 @@ export default function Compare() {
         setCompareProgress(0);
 
         try {
-            // Step 1: Compress images
             toast.info('Compressing images...');
             const [compressedFile1, compressedFile2] = await Promise.all([
-                compressImage(selectedFile1, {
-                    maxSizeMB: 1,
-                    maxWidthOrHeight: 1920,
-                }),
-                compressImage(selectedFile2, {
-                    maxSizeMB: 1,
-                    maxWidthOrHeight: 1920,
-                })
+                compressImage(selectedFile1, { maxSizeMB: 1, maxWidthOrHeight: 1920 }),
+                compressImage(selectedFile2, { maxSizeMB: 1, maxWidthOrHeight: 1920 })
             ]);
 
             setCompareState('comparing');
 
-            // Step 2: Upload and compare
+            // Simulate progress
+            const interval = setInterval(() => {
+                setCompareProgress(prev => Math.min(prev + 5, 90));
+            }, 300);
+
             const compareResult = await apiClient.compare(
                 compressedFile1,
                 compressedFile2,
                 category,
                 allergyText,
                 useCaseText,
-                (progress) => setCompareProgress(progress)
+                (progress) => {
+                    // Api progress is usually fast for uploads, so we mix it
+                    setCompareProgress(p => Math.max(p, progress));
+                }
             );
 
+            clearInterval(interval);
             setCompareProgress(100);
-
-            // Step 3: Show result
             setResult(compareResult);
             setCompareState('complete');
-
             toast.success('Comparison complete!');
 
         } catch (err) {
             console.error('Compare error:', err);
             setCompareState('error');
-
             if (err instanceof ApiError) {
-                if (err.status === 401) {
-                    setError('Session expired. Please login again.');
-                } else {
-                    setError(err.message);
-                }
-                toast.error(err.message);
+                setError(err.status === 401 ? 'Session expired. Please login again.' : err.message);
             } else {
                 setError('An unexpected error occurred. Please try again.');
-                toast.error('Comparison failed. Please try again.');
             }
         }
     };
@@ -167,6 +170,8 @@ export default function Compare() {
         setAllergyText('');
         setUseCaseText('');
         setCategory('General');
+        setResult(null);
+        setCompareState('idle');
     };
 
     const canCompare = selectedFile1 && selectedFile2 && category && compareState === 'idle';
@@ -180,8 +185,19 @@ export default function Compare() {
     }
 
     return (
-        <div className="min-h-screen flex flex-col">
+        <div className="min-h-screen flex flex-col bg-background relative overflow-hidden">
             <NavBar />
+
+            {/* Background Ambience */}
+            <div className="absolute inset-0 pointer-events-none">
+                <div className="absolute top-0 left-0 w-full h-1/2 bg-gradient-to-b from-primary/5 to-transparent" />
+                <FloatingElement delay={0} duration={8} x={30} y={-30}>
+                    <div className="absolute top-20 right-[10%] w-72 h-72 bg-primary/10 rounded-full blur-[90px]" />
+                </FloatingElement>
+                <FloatingElement delay={2} duration={10} x={-30} y={30}>
+                    <div className="absolute bottom-20 left-[10%] w-96 h-96 bg-accent/10 rounded-full blur-[110px]" />
+                </FloatingElement>
+            </div>
 
             {/* Analyzing overlay */}
             <AnimatePresence>
@@ -190,190 +206,169 @@ export default function Compare() {
                 )}
             </AnimatePresence>
 
-            <main className="flex-1 pt-24 pb-12">
+            <main className="flex-1 pt-24 pb-12 relative z-10">
                 <div className="container mx-auto px-4 max-w-6xl">
-                    {/* Header */}
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="text-center mb-8"
+                        className="text-center mb-12"
                     >
-                        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-4">
-                            <GitCompare className="w-4 h-4 text-primary" />
-                            <span className="text-sm font-medium">Product Comparison</span>
+                        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-primary/10 to-accent/10 border border-primary/20 mb-6 shadow-[0_0_15px_rgba(34,197,94,0.1)]">
+                            <Scale className="w-4 h-4 text-primary" />
+                            <span className="text-sm font-medium bg-clip-text text-transparent bg-gradient-to-r from-primary to-accent">Smart Comparison</span>
                         </div>
-                        <h1 className="text-3xl md:text-4xl font-bold mb-2">
-                            Compare Products
+                        <h1 className="text-4xl md:text-5xl font-bold mb-4 tracking-tight">
+                            Compare & <span className="gradient-text">Choose Better</span>
                         </h1>
-                        <p className="text-muted-foreground max-w-2xl mx-auto">
-                            Upload two product images to compare their ingredients, health scores, and get personalized recommendations.
+                        <p className="text-muted-foreground text-lg max-w-xl mx-auto leading-relaxed">
+                            Decide between two products instantly. See side-by-side nutritional breakdowns and a clear winner recommendation.
                         </p>
                     </motion.div>
 
                     <AnimatePresence mode="wait">
                         {result && compareState === 'complete' ? (
-                            <CompareResultCard
+                            <motion.div
                                 key="result"
-                                result={result}
-                                onCompareAgain={handleCompareAgain}
-                            />
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -20 }}
+                            >
+                                <CompareResultCard
+                                    result={result}
+                                    onCompareAgain={handleCompareAgain}
+                                />
+                            </motion.div>
                         ) : (
                             <motion.div
                                 key="form"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                className="bg-card rounded-2xl border border-border/50 p-6 md:p-8"
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                transition={{ duration: 0.4 }}
+                                className="grid gap-8 lg:grid-cols-[2fr,1fr]"
                             >
-                                {/* Error message */}
-                                {error && (
-                                    <motion.div
-                                        initial={{ opacity: 0, y: -10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        className="flex items-start gap-3 p-4 rounded-xl bg-danger/10 border border-danger/20 mb-6"
-                                    >
-                                        <AlertCircle className="w-5 h-5 text-danger flex-shrink-0 mt-0.5" />
-                                        <div>
-                                            <p className="text-sm font-medium text-danger">Comparison failed</p>
-                                            <p className="text-sm text-muted-foreground">{error}</p>
-                                            <Button
-                                                variant="ghost"
-                                                size="sm"
-                                                className="mt-2 text-danger hover:text-danger"
-                                                onClick={() => {
-                                                    setError(null);
-                                                    setCompareState('idle');
-                                                }}
-                                            >
-                                                <RotateCcw className="w-4 h-4 mr-2" />
-                                                Try again
-                                            </Button>
+                                {/* Left Column: Dual Upload */}
+                                <div className="bg-card/40 backdrop-blur-md rounded-3xl border border-white/10 p-6 md:p-8 shadow-xl relative overflow-hidden">
+                                    <div className="flex items-center gap-3 mb-6">
+                                        <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                                            <ArrowRightLeft className="w-5 h-5 text-primary" />
                                         </div>
-                                    </motion.div>
-                                )}
-
-                                <div className="space-y-6">
-                                    {/* Dual File Upload */}
-                                    <div className="grid md:grid-cols-2 gap-6">
-                                        {/* Product 1 */}
                                         <div>
-                                            <Label className="mb-3 block">Product 1 Image</Label>
+                                            <h2 className="text-lg font-semibold">Product Comparison</h2>
+                                            <p className="text-sm text-muted-foreground">Upload both products to compare</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="grid md:grid-cols-2 gap-8 relative mt-8">
+                                        {/* VS Badge */}
+                                        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 hidden md:flex w-14 h-14 rounded-full bg-background border-4 border-card items-center justify-center shadow-lg transform rotate-12 hover:rotate-0 transition-transform duration-300">
+                                            <span className="font-black text-primary text-xl italic">VS</span>
+                                        </div>
+
+                                        {/* Product 1 */}
+                                        <div className="space-y-4">
+                                            <Label className="text-sm font-medium text-muted-foreground uppercase tracking-wider pl-1">Product A</Label>
                                             <FileUpload
                                                 onFileSelect={handleFileSelect1}
                                                 selectedFile={selectedFile1}
                                                 previewUrl={previewUrl1}
                                                 onClear={handleClearFile1}
-                                                disabled={compareState === 'uploading' || compareState === 'comparing'}
-                                                isUploading={compareState === 'uploading'}
-                                                uploadProgress={compareProgress}
+                                                disabled={compareState !== 'idle'}
+                                                isUploading={false}
+                                                uploadProgress={0}
                                             />
                                         </div>
 
                                         {/* Product 2 */}
-                                        <div>
-                                            <Label className="mb-3 block">Product 2 Image</Label>
+                                        <div className="space-y-4">
+                                            <Label className="text-sm font-medium text-muted-foreground uppercase tracking-wider pl-1">Product B</Label>
                                             <FileUpload
                                                 onFileSelect={handleFileSelect2}
                                                 selectedFile={selectedFile2}
                                                 previewUrl={previewUrl2}
                                                 onClear={handleClearFile2}
-                                                disabled={compareState === 'uploading' || compareState === 'comparing'}
-                                                isUploading={compareState === 'uploading'}
-                                                uploadProgress={compareProgress}
+                                                disabled={compareState !== 'idle'}
+                                                isUploading={false}
+                                                uploadProgress={0}
                                             />
                                         </div>
                                     </div>
+                                </div>
 
-                                    {/* Category Selection */}
-                                    <div>
-                                        <Label htmlFor="category" className="mb-3 block">
-                                            Product Category
-                                        </Label>
-                                        <Select
-                                            value={category}
-                                            onValueChange={(value) => setCategory(value as ScanCategory)}
-                                            disabled={compareState !== 'idle'}
+                                {/* Right Column: Controls */}
+                                <div className="space-y-6">
+                                    <div className="bg-card/40 backdrop-blur-md rounded-3xl border border-white/10 p-6 shadow-xl space-y-5">
+                                        <div className="space-y-3">
+                                            <Label htmlFor="category" className="text-base font-semibold">Category</Label>
+                                            <Select
+                                                value={category}
+                                                onValueChange={(value) => setCategory(value as ScanCategory)}
+                                                disabled={compareState !== 'idle'}
+                                            >
+                                                <SelectTrigger className="w-full h-12 bg-background/50 border-white/10 focus:ring-primary/20 rounded-xl">
+                                                    <SelectValue placeholder="Select Category" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    {SCAN_CATEGORIES.map((cat) => (
+                                                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                                                    ))}
+                                                </SelectContent>
+                                            </Select>
+                                        </div>
+
+                                        <div className="space-y-3">
+                                            <Label className="text-sm font-medium flex items-center gap-2">
+                                                <Target className="w-4 h-4 text-primary" />
+                                                Goal / Health Profile
+                                            </Label>
+                                            <Textarea
+                                                placeholder="E.g. High protein, Vegan, Weight loss..."
+                                                value={useCaseText}
+                                                onChange={(e) => setUseCaseText(e.target.value)}
+                                                className="min-h-[100px] resize-none bg-background/50 border-white/10 focus:ring-primary/20 rounded-xl"
+                                            />
+                                        </div>
+
+                                        <AnimatePresence>
+                                            {error && (
+                                                <motion.div
+                                                    initial={{ opacity: 0, height: 0 }}
+                                                    animate={{ opacity: 1, height: 'auto' }}
+                                                    exit={{ opacity: 0, height: 0 }}
+                                                    className="flex items-start gap-2 p-3 rounded-lg bg-danger/10 border border-danger/20 text-danger text-xs"
+                                                >
+                                                    <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                                                    {error}
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+
+                                        <Button
+                                            size="lg"
+                                            className="w-full h-14 text-lg rounded-xl shadow-lg shadow-primary/25 hover:shadow-primary/40 hover:scale-[1.02] transition-all duration-300 relative overflow-hidden group"
+                                            onClick={handleCompare}
+                                            disabled={!canCompare}
                                         >
-                                            <SelectTrigger id="category" className="w-full">
-                                                <SelectValue placeholder="Select a category" />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                {SCAN_CATEGORIES.map((cat) => (
-                                                    <SelectItem key={cat} value={cat}>
-                                                        {cat}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectContent>
-                                        </Select>
+                                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+                                            {compareState === 'uploading' || compareState === 'comparing' ? (
+                                                <>
+                                                    <Sparkles className="w-5 h-5 mr-2 animate-spin" />
+                                                    Comparing...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Scale className="w-5 h-5 mr-2" />
+                                                    Compare Now
+                                                </>
+                                            )}
+                                        </Button>
                                     </div>
-
-                                    {/* Allergy/Disease Input */}
-                                    <div>
-                                        <Label htmlFor="allergies" className="mb-3 block">
-                                            Allergies & Health Conditions
-                                            <span className="text-muted-foreground font-normal ml-2">(optional)</span>
-                                        </Label>
-                                        <Textarea
-                                            id="allergies"
-                                            placeholder="E.g., lactose intolerant, allergic to shellfish, diabetic..."
-                                            value={allergyText}
-                                            onChange={(e) => setAllergyText(e.target.value)}
-                                            disabled={compareState !== 'idle'}
-                                            className="min-h-[80px] resize-none"
-                                            aria-describedby="allergies-hint"
-                                        />
-                                        <p id="allergies-hint" className="text-xs text-muted-foreground mt-2 flex items-start gap-1">
-                                            <Info className="w-3 h-3 mt-0.5 flex-shrink-0" />
-                                            Enter any allergies, intolerances, or health conditions for personalized analysis.
-                                        </p>
-                                    </div>
-
-                                    {/* Use Case Input */}
-                                    <div>
-                                        <Label htmlFor="usecase" className="mb-3 block">
-                                            Use Case
-                                            <span className="text-muted-foreground font-normal ml-2">(optional)</span>
-                                        </Label>
-                                        <Textarea
-                                            id="usecase"
-                                            placeholder="E.g., post-workout snack, breakfast option, kids' lunch..."
-                                            value={useCaseText}
-                                            onChange={(e) => setUseCaseText(e.target.value)}
-                                            disabled={compareState !== 'idle'}
-                                            className="min-h-[80px] resize-none"
-                                            aria-describedby="usecase-hint"
-                                        />
-                                        <p id="usecase-hint" className="text-xs text-muted-foreground mt-2 flex items-start gap-1">
-                                            <Info className="w-3 h-3 mt-0.5 flex-shrink-0" />
-                                            Describe how you plan to use this product for better recommendations.
-                                        </p>
-                                    </div>
-
-                                    {/* Compare Button */}
-                                    <Button
-                                        size="lg"
-                                        className="w-full gap-2"
-                                        onClick={handleCompare}
-                                        disabled={!canCompare}
-                                    >
-                                        {compareState === 'uploading' ? (
-                                            <>Uploading... {Math.round(compareProgress)}%</>
-                                        ) : compareState === 'comparing' ? (
-                                            <>Comparing products...</>
-                                        ) : (
-                                            <>
-                                                <GitCompare className="w-5 h-5" />
-                                                Compare Products
-                                            </>
-                                        )}
-                                    </Button>
                                 </div>
                             </motion.div>
                         )}
                     </AnimatePresence>
                 </div>
             </main>
-
             <Footer />
         </div>
     );
