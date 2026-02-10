@@ -12,7 +12,7 @@ A full-featured React frontend for scanning food and cosmetic products to analyz
 - 📊 **Nutrition Estimates** - View calorie, protein, sugar, and other nutritional information
 - 🎨 **Beautiful Dark Theme** - Eye-friendly dark UI with glow effects for safety status
 - 📱 **Responsive Design** - Works on desktop, tablet, and mobile devices
-- 🔐 **Authentication** - Supabase auth or local mock auth fallback
+- 🔐 **Authentication** - Supabase auth
 
 ## Tech Stack
 
@@ -20,7 +20,7 @@ A full-featured React frontend for scanning food and cosmetic products to analyz
 - **React Router** for navigation
 - **Tailwind CSS** for styling
 - **Framer Motion** for animations
-- **Supabase** for authentication (optional)
+- **Supabase** for authentication and database
 - **Vite** for fast development and building
 
 ## Getting Started
@@ -46,9 +46,7 @@ bun install
 ```
 
 3. Create a `.env` file (optional):
-```bash
-cp .env.example .env
-```
+
 
 4. Start the development server:
 ```bash
@@ -66,10 +64,6 @@ Create a `.env` file with the following variables:
 ```env
 # API Configuration
 VITE_API_BASE=<backend url of the aware india backend>
-
-# Supabase (optional - for cloud authentication)
-VITE_SUPABASE_URL=your-supabase-url
-VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
 ```
 
 ### Variable Details
@@ -77,26 +71,8 @@ VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
 | `VITE_API_BASE` | No | `<backend url of the aware india backend>` | Backend API base URL |
-| `VITE_SUPABASE_URL` | No | - | Supabase project URL |
-| `VITE_SUPABASE_ANON_KEY` | No | - | Supabase anonymous key |
 
-## Authentication Modes
 
-### Supabase Mode (Recommended for Production)
-
-When `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` are set:
-- Uses Supabase Auth for user management
-- Email/password authentication
-- User metadata stored in Supabase
-- Session persistence across browser tabs
-
-### Mock Mode (Default for Development)
-
-When Supabase env vars are not set:
-- Uses localStorage for user data
-- No external dependencies
-- Great for local development
-- Data persists in browser only
 
 ## API Endpoints
 
@@ -180,12 +156,8 @@ src/
 
 ## Deployment
 
-### Vercel (Recommended)
-
-1. Push your code to GitHub
-2. Import the repository in Vercel
-3. Set environment variables in Vercel dashboard
-4. Deploy!
+### Vercel Link
+[AwareIndia](https://aware-india-frontend.vercel.app/)
 
 ### Manual Build
 
@@ -197,7 +169,7 @@ npm run build
 ## Usage Flow
 
 1. **Home Page**: View features and click "Get Started"
-2. **Login/Signup**: Create account or login (mock auth if no Supabase)
+2. **Login/Signup**: Create account or login (Supabase)
 3. **Scan Page**: 
    - Upload product image
    - Select category (Food, Cosmetics, etc.)
