@@ -5,8 +5,10 @@ import { IngredientList } from '@/components/IngredientCard';
 import { NutritionChips } from '@/components/NutritionChips';
 import { cn } from '@/lib/utils';
 import Img from '@/components/Img';
-import { Shield, ShieldAlert, AlertTriangle, ExternalLink } from 'lucide-react';
+import { Shield, ShieldAlert, AlertTriangle, ExternalLink, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { NutritionChart } from '@/components/NutritionChart';
+import { Magnetic } from '@/components/Magnetic';
 
 interface ResultCardProps {
   result: ScanResult;
@@ -25,11 +27,11 @@ export function ResultCard({ result, onScanAgain }: ResultCardProps) {
     >
       {/* Glow container */}
       <div className={cn(
-        'relative rounded-2xl',
-        isSafe ? 'glow-safe' : 'glow-danger'
+        'relative rounded-[2.5rem] p-[2px]',
+        isSafe ? 'bg-gradient-to-br from-safe/40 to-transparent' : 'bg-gradient-to-br from-danger/40 to-transparent'
       )}>
         {/* Main card */}
-        <div className="relative bg-card rounded-2xl border border-border/50 overflow-hidden">
+        <div className="relative glass-card-premium rounded-[2.5rem] overflow-hidden">
           {/* Product image */}
           <div className="relative aspect-video w-full overflow-hidden">
             <Img
@@ -39,14 +41,14 @@ export function ResultCard({ result, onScanAgain }: ResultCardProps) {
             />
             {/* Gradient overlay */}
             <div className="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent" />
-            
+
             {/* Safety badge overlay */}
             <div className="absolute top-4 right-4">
               <div className={cn(
                 'flex items-center gap-2 px-3 py-1.5 rounded-full',
                 'backdrop-blur-md',
-                isSafe 
-                  ? 'bg-safe/20 border border-safe/30 text-safe' 
+                isSafe
+                  ? 'bg-safe/20 border border-safe/30 text-safe'
                   : 'bg-danger/20 border border-danger/30 text-danger'
               )}>
                 {isSafe ? (
@@ -62,14 +64,18 @@ export function ResultCard({ result, onScanAgain }: ResultCardProps) {
           </div>
 
           {/* Content */}
-          <div className="p-6 space-y-6">
+          <div className="p-5 md:p-6 space-y-6">
             {/* Header: Name + Score */}
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex-1">
-                <h1 className="text-2xl font-bold mb-2">{result.product_name}</h1>
-                <HealthScoreMeter score={result.health_score} size="md" />
+            <div className="flex flex-col md:flex-row items-start md:justify-between gap-6 md:gap-4">
+              <div className="flex-1 w-full text-center md:text-left">
+                <h1 className="text-2xl md:text-3xl font-bold mb-3">{result.product_name}</h1>
+                <div className="flex justify-center md:justify-start">
+                  <HealthScoreMeter score={result.health_score} size="md" />
+                </div>
               </div>
-              <RadialScore score={result.health_score} size={100} />
+              <div className="flex justify-center w-full md:w-auto">
+                <RadialScore score={result.health_score} size={window.innerWidth < 768 ? 80 : 100} />
+              </div>
             </div>
 
             {/* Description / Personalized reason */}
@@ -87,9 +93,14 @@ export function ResultCard({ result, onScanAgain }: ResultCardProps) {
             </div>
 
             {/* Nutrition */}
-            <div>
-              <h3 className="text-lg font-semibold mb-3">Nutrition Estimate</h3>
-              <NutritionChips nutrition={result.nutrition_estimate} />
+            <div className="grid md:grid-cols-2 gap-6 items-center">
+              <div>
+                <h3 className="text-xl font-bold mb-4 font-display">Nutritional Analysis</h3>
+                <NutritionChips nutrition={result.nutrition_estimate} />
+              </div>
+              <div className="bg-white/5 rounded-3xl p-4 border border-white/10">
+                <NutritionChart nutrition={result.nutrition_estimate} />
+              </div>
             </div>
 
             {/* Ingredients */}
@@ -111,20 +122,23 @@ export function ResultCard({ result, onScanAgain }: ResultCardProps) {
             )}
 
             {/* Actions */}
-            <div className="flex flex-col sm:flex-row gap-3 pt-4 border-t border-border/50">
-              <Button 
-                onClick={onScanAgain}
-                className="flex-1"
-              >
-                Scan Another Product
-              </Button>
-              <Button 
-                variant="outline" 
-                className="flex-1"
+            <div className="flex flex-col sm:flex-row gap-4 pt-6 border-t border-white/10">
+              <Magnetic strength={0.2}>
+                <Button
+                  onClick={onScanAgain}
+                  className="w-full h-14 rounded-2xl font-bold text-lg"
+                >
+                  <Sparkles className="w-5 h-5 mr-2" />
+                  Scan Another Product
+                </Button>
+              </Magnetic>
+              <Button
+                variant="outline"
+                className="flex-1 h-14 rounded-2xl border-white/10"
                 asChild
               >
                 <a href={result.url} target="_blank" rel="noopener noreferrer">
-                  View Image
+                  View Source Image
                   <ExternalLink className="w-4 h-4 ml-2" />
                 </a>
               </Button>

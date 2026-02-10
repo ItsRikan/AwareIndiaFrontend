@@ -109,6 +109,9 @@ export function FileUpload({
               className="w-full aspect-video object-cover"
             />
             
+            {/* Scanning Laser Animation */}
+            {isUploading && <div className="scanning-laser" />}
+            
             {/* Upload progress overlay */}
             {isUploading && typeof uploadProgress === 'number' && (
               <div className="absolute inset-0 bg-background/80 backdrop-blur-sm flex items-center justify-center">

@@ -3,8 +3,9 @@ import { CompareResult } from '@/types';
 import { RadialScore, HealthScoreMeter } from '@/components/HealthScoreBadge';
 import { cn } from '@/lib/utils';
 import Img from '@/components/Img';
-import { Shield, ShieldAlert, Trophy, AlertTriangle } from 'lucide-react';
+import { Shield, ShieldAlert, Trophy, AlertTriangle, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Magnetic } from '@/components/Magnetic';
 
 interface CompareResultCardProps {
     result: CompareResult;
@@ -24,22 +25,32 @@ export function CompareResultCard({ result, onCompareAgain }: CompareResultCardP
         >
             {/* Recommendation Banner */}
             <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mb-6 p-6 rounded-2xl bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20"
+                initial={{ opacity: 0, y: -20, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                className="mb-8 p-6 md:p-8 rounded-[1.5rem] md:rounded-[2rem] glass-card-premium border-primary/30 relative"
             >
-                <div className="flex items-start gap-4">
-                    <div className="p-3 rounded-full bg-primary/20">
-                        <Trophy className="w-6 h-6 text-primary" />
+                <div className="absolute top-0 right-6 md:right-10 -translate-y-1/2">
+                    <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                        className="bg-primary/20 backdrop-blur-xl p-3 md:p-4 rounded-full border border-primary/30"
+                    >
+                        <Sparkles className="w-6 h-6 md:w-8 md:h-8 text-primary shadow-primary shadow-2xl" />
+                    </motion.div>
+                </div>
+
+                <div className="flex flex-col md:flex-row items-center md:items-start gap-4 md:gap-6 relative z-10 text-center md:text-left">
+                    <div className="p-4 rounded-2xl bg-gradient-to-br from-primary/30 to-primary/10 border border-primary/20 shadow-2xl shadow-primary/20">
+                        <Trophy className="w-6 h-6 md:w-8 md:h-8 text-primary" />
                     </div>
                     <div className="flex-1">
-                        <h3 className="text-lg font-semibold mb-2">Recommendation for You</h3>
-                        <p className="text-sm leading-relaxed text-muted-foreground">
+                        <h3 className="text-xl font-bold mb-2 font-display text-white">Recommended Choice</h3>
+                        <p className="text-sm md:text-base leading-relaxed text-muted-foreground max-w-2xl">
                             {result.preferred_for_you}
                         </p>
-                        <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20">
-                            <span className="text-sm font-medium text-primary">
-                                Best Choice: {result.best_product}
+                        <div className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-primary/20 border border-primary/30 shadow-lg">
+                            <span className="text-sm md:text-base font-bold text-primary">
+                                Winner: {result.best_product}
                             </span>
                         </div>
                     </div>
@@ -105,12 +116,14 @@ export function CompareResultCard({ result, onCompareAgain }: CompareResultCardP
                             {/* Content */}
                             <div className="p-6 space-y-4">
                                 {/* Header */}
-                                <div className="flex items-start justify-between gap-4">
-                                    <div className="flex-1">
+                                <div className="flex flex-col sm:flex-row items-center sm:items-start justify-between gap-4 text-center sm:text-left">
+                                    <div className="flex-1 w-full">
                                         <h2 className="text-xl font-bold mb-2">Product 1</h2>
-                                        <HealthScoreMeter score={result.health_score1} size="sm" />
+                                        <div className="flex justify-center sm:justify-start">
+                                            <HealthScoreMeter score={result.health_score1} size="sm" />
+                                        </div>
                                     </div>
-                                    <RadialScore score={result.health_score1} size={80} />
+                                    <RadialScore score={result.health_score1} size={70} />
                                 </div>
 
                                 {/* Description */}
@@ -188,12 +201,14 @@ export function CompareResultCard({ result, onCompareAgain }: CompareResultCardP
                             {/* Content */}
                             <div className="p-6 space-y-4">
                                 {/* Header */}
-                                <div className="flex items-start justify-between gap-4">
-                                    <div className="flex-1">
+                                <div className="flex flex-col sm:flex-row items-center sm:items-start justify-between gap-4 text-center sm:text-left">
+                                    <div className="flex-1 w-full">
                                         <h2 className="text-xl font-bold mb-2">Product 2</h2>
-                                        <HealthScoreMeter score={result.health_score2} size="sm" />
+                                        <div className="flex justify-center sm:justify-start">
+                                            <HealthScoreMeter score={result.health_score2} size="sm" />
+                                        </div>
                                     </div>
-                                    <RadialScore score={result.health_score2} size={80} />
+                                    <RadialScore score={result.health_score2} size={70} />
                                 </div>
 
                                 {/* Description */}
@@ -222,13 +237,15 @@ export function CompareResultCard({ result, onCompareAgain }: CompareResultCardP
                 transition={{ delay: 0.3 }}
                 className="mt-6 flex justify-center"
             >
-                <Button
-                    onClick={onCompareAgain}
-                    size="lg"
-                    className="gap-2"
-                >
-                    Compare Again
-                </Button>
+                <Magnetic>
+                    <Button
+                        onClick={onCompareAgain}
+                        size="lg"
+                        className="h-14 px-8 rounded-xl font-display text-lg gap-2"
+                    >
+                        Compare Again
+                    </Button>
+                </Magnetic>
             </motion.div>
         </motion.div>
     );

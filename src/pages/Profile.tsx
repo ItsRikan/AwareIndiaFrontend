@@ -94,7 +94,6 @@ export default function Profile() {
                     <h2 className="text-2xl font-bold truncate">{user.name || 'User'}</h2>
                     <p className="text-sm text-muted-foreground flex items-center gap-1.5">
                       @{user.username || user.email.split('@')[0]}
-                      {isSupabaseMode && <Badge variant="secondary" className="h-5 text-[10px] px-1.5">PRO</Badge>}
                     </p>
                   </div>
 

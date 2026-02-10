@@ -146,45 +146,90 @@ export default function Login() {
     <div className="min-h-screen flex w-full bg-background overscroll-none">
 
       {/* Visual Side (Hidden on Mobile) */}
-      <div className="hidden lg:flex w-1/2 relative overflow-hidden bg-card/10 items-center justify-center p-12">
-        <div className="absolute inset-0 bg-[url('/Background.jpg')] bg-cover bg-center opacity-20 blur-sm" />
-        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/50" />
+      <div className="hidden lg:flex w-1/2 relative overflow-hidden bg-background-deep items-center justify-center p-12 cursor-default">
+        {/* Soft Ambient Background Glows */}
+        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_30%_30%,rgba(34,197,94,0.08),transparent_70%)]" />
+        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_80%_70%,rgba(99,102,241,0.05),transparent_70%)]" />
 
-        {/* Animated Shapes */}
-        <div className="absolute inset-0 pointer-events-none">
-          <FloatingElement delay={0} duration={8} x={30} y={-40}>
-            <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/20 rounded-full blur-[100px]" />
-          </FloatingElement>
-          <FloatingElement delay={2} duration={10} x={-30} y={40}>
-            <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-accent/20 rounded-full blur-[80px]" />
-          </FloatingElement>
+        {/* Floating Health & Food Cards (Autonomous Motion) */}
+        <div className="absolute inset-0 z-0 pointer-events-none opacity-60">
+          {[
+            { img: "https://images.unsplash.com/photo-1490645935967-10de6ba17061?auto=format&fit=crop&q=80&w=400", top: "12%", left: "12%", scale: 1.0, label: "92 / 100", labelColor: "text-safe", duration: 6 },
+            { img: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&q=80&w=400", top: "42%", left: "68%", scale: 0.9, label: "Organic", labelColor: "text-primary", duration: 8 },
+            { img: "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?auto=format&fit=crop&q=80&w=400", top: "68%", left: "18%", scale: 1.05, label: "Non-GMO", labelColor: "text-accent", duration: 7 },
+            { img: "https://images.unsplash.com/photo-1498837167922-ddd27525d352?auto=format&fit=crop&q=80&w=400", top: "8%", left: "62%", scale: 0.85, label: "Low Sugar", labelColor: "text-safe", duration: 9 },
+          ].map((card, idx) => (
+            <motion.div
+              key={idx}
+              className="absolute"
+              style={{
+                top: card.top,
+                left: card.left,
+                zIndex: idx,
+                willChange: "transform"
+              }}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{
+                opacity: 1,
+                scale: card.scale,
+                y: [0, -25, 0],
+                x: [0, 15, 0],
+                rotate: idx % 2 === 0 ? [2, -2, 2] : [-2, 2, -2]
+              }}
+              transition={{
+                opacity: { duration: 1, delay: idx * 0.2 },
+                scale: { duration: 1.2, delay: idx * 0.2 },
+                y: { duration: card.duration, repeat: Infinity, ease: "easeInOut" },
+                x: { duration: card.duration + 2, repeat: Infinity, ease: "easeInOut" },
+                rotate: { duration: card.duration + 1, repeat: Infinity, ease: "easeInOut" }
+              }}
+            >
+              <div className="w-52 h-64 rounded-[2.5rem] overflow-hidden glass-card-premium border-white/[0.08] shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-all duration-700">
+                <img src={card.img} alt="Health" className="w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent" />
+                <div className="absolute bottom-5 left-5 right-5 flex justify-between items-center">
+                  <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-white/5 backdrop-blur-md border border-white/10 ${card.labelColor}`}>
+                    {card.label}
+                  </span>
+                  <div className="w-6 h-6 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center">
+                    <Sparkles className="w-3 h-3 text-white/40" />
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          ))}
         </div>
 
-        <div className="relative z-10 max-w-lg text-center">
+        {/* Central Brand Messaging */}
+        <div className="relative z-10 max-w-lg text-center select-none">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.2 }}
+            transition={{ duration: 0.8, delay: 0.3 }}
           >
-            <div className="w-24 h-24 bg-gradient-to-br from-primary via-primary/80 to-accent rounded-3xl mx-auto mb-8 flex items-center justify-center shadow-2xl shadow-primary/30">
-              <ScanLine className="w-12 h-12 text-white" />
+            <div className="w-24 h-24 bg-gradient-to-br from-primary via-primary/80 to-accent rounded-[2.5rem] mx-auto mb-10 flex items-center justify-center shadow-[0_0_60px_rgba(34,197,94,0.3)] relative group overflow-hidden">
+              <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              <ScanLine className="w-12 h-12 text-white relative z-10 group-hover:scale-110 transition-transform duration-700" />
             </div>
-            <h2 className="text-4xl font-bold mb-6">Welcome to the Future of <br /> <span className="gradient-text">Healthy Eating</span></h2>
-            <p className="text-xl text-muted-foreground leading-relaxed">
-              Join thousands of users making informed decisions about what they consume. AI-powered analysis at your fingertips.
+            <h2 className="text-4xl md:text-5xl font-bold mb-6 tracking-tighter leading-[1.05]">
+              Elevate Your <br />
+              <span className="gradient-text font-black">Food Intelligence</span>
+            </h2>
+            <p className="text-lg text-muted-foreground/70 leading-relaxed max-w-sm mx-auto font-medium">
+              Join the elite circle of conscious consumers using AI to verify every ingredient.
             </p>
 
-            <div className="mt-12 grid grid-cols-3 gap-6">
+            <div className="mt-14 flex justify-center items-center gap-10">
               {[
-                { icon: Shield, label: "Detailed Analysis" },
-                { icon: Sparkles, label: "AI Powered" },
-                { icon: Leaf, label: "Health First" }
+                { icon: Shield, label: "Secure" },
+                { icon: Sparkles, label: "AI" },
+                { icon: Leaf, label: "Organic" }
               ].map((item, i) => (
-                <div key={i} className="flex flex-col items-center gap-3">
-                  <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
-                    <item.icon className="w-6 h-6 text-primary" />
+                <div key={i} className="flex flex-col items-center gap-2.5">
+                  <div className="w-11 h-11 rounded-2xl bg-white/[0.03] border border-white/5 flex items-center justify-center hover:bg-primary/10 hover:border-primary/20 transition-all duration-300">
+                    <item.icon className="w-5 h-5 text-primary/40" />
                   </div>
-                  <span className="text-sm font-medium text-muted-foreground">{item.label}</span>
+                  <span className="text-[9px] font-black tracking-widest uppercase text-muted-foreground/40">{item.label}</span>
                 </div>
               ))}
             </div>

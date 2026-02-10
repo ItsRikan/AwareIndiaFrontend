@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { motion } from 'framer-motion';
 import { Ingredient } from '@/types';
 import { HealthScoreBadge } from '@/components/HealthScoreBadge';
 import { cn } from '@/lib/utils';
@@ -28,18 +29,19 @@ export function IngredientCard({ ingredient, index = 0 }: IngredientCardProps) {
   };
 
   const shouldTruncate = ingredient.description.length > 100;
-  const displayDescription = expanded 
-    ? ingredient.description 
+  const displayDescription = expanded
+    ? ingredient.description
     : ingredient.description.slice(0, 100) + (shouldTruncate ? '...' : '');
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.05 }}
       className={cn(
-        'p-4 rounded-xl bg-card-elevated border border-border/50',
-        'transition-all duration-300 hover:border-border',
-        'animate-fadeIn'
+        'p-4 rounded-2xl glass-card-premium border-white/5',
+        'transition-all duration-300 hover:border-primary/30',
       )}
-      style={{ animationDelay: `${index * 50}ms` }}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
@@ -84,7 +86,7 @@ export function IngredientCard({ ingredient, index = 0 }: IngredientCardProps) {
         {/* Score badge */}
         <HealthScoreBadge score={ingredient.health_score} size="sm" />
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -105,15 +107,21 @@ export function IngredientList({ ingredients }: IngredientListProps) {
   const sortedIngredients = [...ingredients].sort((a, b) => a.health_score - b.health_score);
 
   return (
-    <div className="space-y-3">
-      <h3 className="text-lg font-semibold mb-4">Ingredients Analysis</h3>
-      {sortedIngredients.map((ingredient, index) => (
-        <IngredientCard 
-          key={`${ingredient.name}-${index}`} 
-          ingredient={ingredient} 
-          index={index}
-        />
-      ))}
+    <div className="space-y-4">
+      <h3 className="text-xl font-bold mb-4 font-display">Ingredient Analysis</h3>
+      <motion.div
+        className="space-y-3"
+        initial="hidden"
+        animate="show"
+      >
+        {sortedIngredients.map((ingredient, index) => (
+          <IngredientCard
+            key={`${ingredient.name}-${index}`}
+            ingredient={ingredient}
+            index={index}
+          />
+        ))}
+      </motion.div>
     </div>
   );
 }

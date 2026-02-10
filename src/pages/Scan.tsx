@@ -22,6 +22,8 @@ import { compressImage, createImagePreview, revokeImagePreview } from '@/lib/ima
 import { ScanResult, SCAN_CATEGORIES, ScanCategory } from '@/types';
 import { ScanLine, AlertCircle, Info, Sparkles, Zap, Leaf } from 'lucide-react';
 import { toast } from 'sonner';
+import { Magnetic } from '@/components/Magnetic';
+import { InteractiveBackground } from '@/components/InteractiveBackground';
 
 type ScanState = 'idle' | 'uploading' | 'scanning' | 'complete' | 'error';
 
@@ -176,7 +178,8 @@ export default function Scan() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-background relative overflow-hidden">
+    <div className="min-h-screen flex flex-col bg-background relative overflow-hidden selection:bg-primary/20">
+      <InteractiveBackground />
       <NavBar />
 
       {/* Background Ambience */}
@@ -247,8 +250,8 @@ export default function Scan() {
                 className="grid gap-8 lg:grid-cols-[1fr,350px]"
               >
                 {/* Left Column: Image Upload */}
-                <div className="bg-card/40 backdrop-blur-md rounded-3xl border border-white/10 p-6 md:p-8 shadow-xl relative overflow-hidden group">
-                  <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
+                <div className="glass-card-premium rounded-[2.5rem] p-8 md:p-10 shadow-2xl relative overflow-hidden group border-white/10">
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-1000 pointer-events-none" />
 
                   <div className="space-y-6 relative">
                     <div className="flex items-center justify-between mb-2">
@@ -367,28 +370,30 @@ export default function Scan() {
                     </AnimatePresence>
 
                     {/* Scan Button */}
-                    <Button
-                      size="lg"
-                      className="w-full h-14 text-lg rounded-xl shadow-lg shadow-primary/25 hover:shadow-primary/40 hover:scale-[1.02] transition-all duration-300 relative overflow-hidden group"
-                      onClick={handleScan}
-                      disabled={!canScan}
-                    >
-                      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+                    <Magnetic strength={0.1}>
+                      <Button
+                        size="lg"
+                        className="w-full h-16 text-xl rounded-2xl shadow-2xl shadow-primary/20 hover:shadow-primary/40 hover:scale-[1.02] transition-all duration-500 relative overflow-hidden group"
+                        onClick={handleScan}
+                        disabled={!canScan}
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
 
-                      {scanState === 'uploading' ? (
-                        <>Uploading...</>
-                      ) : scanState === 'scanning' ? (
-                        <>
-                          <Sparkles className="w-5 h-5 mr-2 animate-spin" />
-                          Analyzing...
-                        </>
-                      ) : (
-                        <>
-                          <ScanLine className="w-5 h-5 mr-2" />
-                          Analyze Product
-                        </>
-                      )}
-                    </Button>
+                        {scanState === 'uploading' ? (
+                          <>Uploading...</>
+                        ) : scanState === 'scanning' ? (
+                          <>
+                            <Sparkles className="w-6 h-6 mr-3 animate-spin" />
+                            Analyzing...
+                          </>
+                        ) : (
+                          <>
+                            <ScanLine className="w-6 h-6 mr-3" />
+                            Analyze Product
+                          </>
+                        )}
+                      </Button>
+                    </Magnetic>
                   </div>
                 </div>
               </motion.div>

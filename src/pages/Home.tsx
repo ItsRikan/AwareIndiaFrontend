@@ -14,6 +14,8 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { MouseEvent, useRef } from 'react';
+import { Magnetic } from '@/components/Magnetic';
+import { InteractiveBackground } from '@/components/InteractiveBackground';
 
 const features = [
   {
@@ -50,35 +52,29 @@ const features = [
   },
 ];
 
-// Spotlight Card Component (Enhanced)
+// Spotlight Card Component (High Performance)
 function SpotlightCard({ children, className = "" }: { children: React.ReactNode, className?: string }) {
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
+  const divRef = useRef<HTMLDivElement>(null);
 
-  function handleMouseMove({ currentTarget, clientX, clientY }: MouseEvent) {
-    const { left, top } = currentTarget.getBoundingClientRect();
-    mouseX.set(clientX - left);
-    mouseY.set(clientY - top);
+  function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
+    if (!divRef.current) return;
+    const { left, top } = divRef.current.getBoundingClientRect();
+    divRef.current.style.setProperty("--mouse-x", `${e.clientX - left}px`);
+    divRef.current.style.setProperty("--mouse-y", `${e.clientY - top}px`);
   }
 
   return (
     <div
-      className={`group relative border border-white/5 bg-card/50 backdrop-blur-sm overflow-hidden rounded-3xl ${className}`}
+      ref={divRef}
       onMouseMove={handleMouseMove}
+      className={`group relative border border-white/[0.03] bg-card/30 backdrop-blur-xl overflow-hidden rounded-[2rem] ${className}`}
     >
-      <motion.div
-        className="pointer-events-none absolute -inset-px rounded-3xl opacity-0 transition duration-300 group-hover:opacity-100"
+      <div
+        className="pointer-events-none absolute -inset-px opacity-0 transition duration-300 group-hover:opacity-100"
         style={{
-          background: useMotionTemplate`
-            radial-gradient(
-              650px circle at ${mouseX}px ${mouseY}px,
-              rgba(34, 197, 94, 0.1),
-              transparent 80%
-            )
-          `,
+          background: `radial-gradient(600px circle at var(--mouse-x) var(--mouse-y), rgba(34, 197, 94, 0.08), transparent 80%)`,
         }}
       />
-      <div className="absolute inset-0 bg-gradient-to-b from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
       <div className="relative h-full">{children}</div>
     </div>
   );
@@ -135,52 +131,76 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col overflow-x-hidden bg-background" onMouseMove={onMouseMove} ref={targetRef}>
+    <div className="min-h-screen flex flex-col overflow-x-hidden bg-background relative" ref={targetRef}>
+      <InteractiveBackground />
       <NavBar />
 
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center justify-center overflow-hidden pt-20">
-        {/* Dynamic Grid Background */}
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] pointer-events-none" />
+        {/* Deep background glow instead of lines */}
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1200px] h-[600px] bg-primary/20 rounded-[100%] blur-[150px] pointer-events-none opacity-40" />
 
-        {/* Spotlight Effect */}
-        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[500px] bg-primary/20 rounded-[100%] blur-[120px] pointer-events-none opacity-50" />
-
-        {/* Floating 3D Elements */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none select-none">
-          <FloatingElement delay={0} duration={8} x={40} y={-40} rotate={10}>
-            <div className="absolute top-[15%] left-[5%] md:left-[15%] w-24 h-24 rounded-3xl bg-gradient-to-br from-primary/20 to-transparent backdrop-blur-md border border-white/10 flex items-center justify-center shadow-2xl rotate-12">
-              <Shield className="w-10 h-10 text-primary drop-shadow-[0_0_15px_rgba(34,197,94,0.5)]" />
-            </div>
-          </FloatingElement>
-
-          <FloatingElement delay={1} duration={10} x={-30} y={50} rotate={-15}>
-            <div className="absolute top-[25%] right-[5%] md:right-[15%] w-20 h-20 rounded-full bg-gradient-to-bl from-accent/20 to-transparent backdrop-blur-md border border-white/10 flex items-center justify-center shadow-2xl -rotate-6">
-              <Zap className="w-8 h-8 text-accent drop-shadow-[0_0_15px_rgba(234,179,8,0.5)]" />
-            </div>
-          </FloatingElement>
-
-          <FloatingElement delay={2} duration={12} x={20} y={40} rotate={5}>
-            <div className="absolute bottom-[20%] left-[10%] md:left-[20%] w-28 h-28 rounded-2xl bg-gradient-to-tr from-safe/20 to-transparent backdrop-blur-md border border-white/10 flex items-center justify-center shadow-2xl rotate-3">
-              <Leaf className="w-12 h-12 text-safe drop-shadow-[0_0_15px_rgba(59,130,246,0.5)]" />
-            </div>
-          </FloatingElement>
+        {/* Floating Health & Product Cards (Autonomous Motion) */}
+        <div className="absolute inset-0 z-0 pointer-events-none opacity-40 select-none">
+          {[
+            { img: "https://images.unsplash.com/photo-1593095948071-474c5cc2989d?auto=format&fit=crop&q=80&w=400", top: "15%", left: "8%", scale: 1.1, label: "Whey Protein", labelColor: "text-primary", duration: 7 },
+            { img: "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&q=80&w=400", top: "25%", right: "8%", scale: 0.9, label: "Pet Food", labelColor: "text-accent", duration: 9 },
+            { img: "https://images.unsplash.com/photo-1556228720-195a672e8a03?auto=format&fit=crop&q=80&w=400", top: "60%", left: "12%", scale: 1.0, label: "Skincare", labelColor: "text-safe", duration: 8 },
+            { img: "https://images.unsplash.com/photo-1505576399279-565b52d4ac71?auto=format&fit=crop&q=80&w=400", top: "70%", right: "12%", scale: 0.95, label: "Healthy Seeds", labelColor: "text-primary", duration: 10 },
+          ].map((card, idx) => (
+            <motion.div
+              key={idx}
+              className="absolute"
+              style={{
+                top: card.top,
+                left: card.left || 'auto',
+                right: card.right || 'auto',
+                zIndex: 0,
+                willChange: "transform"
+              }}
+              initial={{ opacity: 0, scale: 0.8 }}
+              animate={{
+                opacity: 0.6,
+                scale: card.scale,
+                y: [0, -30, 0],
+                x: [0, 20, 0],
+                rotate: idx % 2 === 0 ? [3, -3, 3] : [-3, 3, -3]
+              }}
+              transition={{
+                opacity: { duration: 1.5, delay: idx * 0.3 },
+                scale: { duration: 1.5, delay: idx * 0.3 },
+                y: { duration: card.duration, repeat: Infinity, ease: "easeInOut" },
+                x: { duration: card.duration + 2, repeat: Infinity, ease: "easeInOut" },
+                rotate: { duration: card.duration + 1, repeat: Infinity, ease: "easeInOut" }
+              }}
+            >
+              <div className="w-32 sm:w-40 md:w-52 h-44 sm:h-52 md:h-64 rounded-[2rem] md:rounded-[2.5rem] overflow-hidden glass-card-premium border-white/[0.08] shadow-2xl backdrop-blur-md">
+                <img src={card.img} alt={card.label} className="w-full h-full object-cover opacity-80" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                <div className="absolute bottom-3 md:bottom-4 left-3 md:left-4 right-3 md:right-4 flex justify-between items-center">
+                  <span className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-full bg-black/40 backdrop-blur-md border border-white/10 ${card.labelColor}`}>
+                    {card.label}
+                  </span>
+                </div>
+              </div>
+            </motion.div>
+          ))}
         </div>
 
         <div className="container mx-auto px-4 relative z-10">
           <motion.div
-            style={{ y: heroY, opacity, x: useTransform(mouseX, [-0.5, 0.5], [-20, 20]), rotateX: useTransform(mouseY, [-0.5, 0.5], [5, -5]) }}
+            style={{ y: heroY, opacity }}
             className="text-center max-w-5xl mx-auto perspective-1000"
           >
             {/* REMOVED: Sparkles Badge */}
 
-            <h1 className="text-5xl md:text-7xl lg:text-9xl font-bold mb-8 leading-[0.9] tracking-tighter">
+            <h1 className="text-4xl md:text-7xl lg:text-9xl font-bold mb-6 md:mb-8 leading-[1] md:leading-[0.9] tracking-tighter">
               Know what <br className="hidden md:block" />
-              <span className="text-transparent bg-clip-text bg-gradient-to-b from-white to-white/40">you eat</span>{' '}
-              <span className="relative inline-block">
+              <span className="text-transparent bg-clip-text bg-gradient-to-b from-foreground to-foreground/40">you eat</span>{' '}
+              <span className="relative inline-block mt-2 md:mt-0">
                 <span className="gradient-text relative z-10">fast.</span>
                 <motion.div
-                  className="absolute -bottom-2 md:-bottom-4 left-0 w-full h-4 md:h-8 bg-primary/20 -skew-x-12 -z-0 blur-xl"
+                  className="absolute -bottom-1 md:-bottom-4 left-0 w-full h-3 md:h-8 bg-primary/20 -skew-x-12 -z-0 blur-lg md:blur-xl"
                   initial={{ width: 0 }}
                   animate={{ width: "100%" }}
                   transition={{ delay: 0.5, duration: 1 }}
@@ -192,11 +212,12 @@ export default function Home() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.6 }}
-              className="text-xl md:text-2xl text-muted-foreground mb-12 max-w-2xl mx-auto leading-relaxed"
+              className="text-lg md:text-2xl text-muted-foreground mb-10 md:mb-12 max-w-2xl mx-auto leading-relaxed px-4 md:px-0"
             >
-              Scan packages instantly. Detect hidden additives. <br className="hidden md:block" />
+              Scan packages instantly. Detect hidden additives. <br className="hidden sm:block" />
               Get personalized health insights in your pocket.
             </motion.p>
+
 
             <motion.div
               initial={{ opacity: 0, y: 30 }}
@@ -204,15 +225,17 @@ export default function Home() {
               transition={{ delay: 0.4 }}
               className="flex flex-col sm:flex-row gap-6 justify-center items-center"
             >
-              <Button
-                size="lg"
-                onClick={handleGetStarted}
-                className="h-16 px-10 text-xl rounded-2xl shadow-[0_10px_40px_-10px_rgba(34,197,94,0.4)] hover:shadow-[0_20px_60px_-15px_rgba(34,197,94,0.6)] hover:scale-105 transition-all duration-300 relative overflow-hidden group border border-primary/20"
-              >
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
-                Start Scanning
-                <ScanLine className="w-6 h-6 ml-3" />
-              </Button>
+              <Magnetic strength={0.2}>
+                <Button
+                  size="lg"
+                  onClick={handleGetStarted}
+                  className="h-16 px-10 text-xl rounded-2xl shadow-[0_10px_40px_-10px_rgba(34,197,94,0.4)] hover:shadow-[0_20px_60px_-15px_rgba(34,197,94,0.6)] hover:scale-105 transition-all duration-300 relative overflow-hidden group border border-primary/20"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+                  Start Scanning
+                  <ScanLine className="w-6 h-6 ml-3" />
+                </Button>
+              </Magnetic>
 
               {!isAuthenticated && (
                 <Button
@@ -264,11 +287,11 @@ export default function Home() {
                 transition={{ delay: index * 0.1, duration: 0.5 }}
                 className="h-full"
               >
-                <SpotlightCard className="h-full p-8 hover:border-primary/30 transition-colors duration-500">
-                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-6 ${feature.bg} ${feature.color}`}>
+                <SpotlightCard className="h-full p-8 transition-all duration-500 hover:scale-[1.02] border border-white/10 active:scale-[0.98]">
+                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 transition-all duration-500 group-hover:scale-110 group-hover:rotate-6 shadow-lg ${feature.bg} ${feature.color}`}>
                     <feature.icon className="w-7 h-7" />
                   </div>
-                  <h3 className="text-2xl font-bold mb-4">{feature.title}</h3>
+                  <h3 className="text-2xl font-bold mb-4 font-display">{feature.title}</h3>
                   <p className="text-muted-foreground leading-relaxed text-base">{feature.description}</p>
                 </SpotlightCard>
               </motion.div>
@@ -278,8 +301,7 @@ export default function Home() {
       </section>
 
       {/* How It Works Section */}
-      <section id="how-it-works" className="py-32 relative overflow-hidden bg-black/20">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(34,197,94,0.05),transparent_70%)] pointer-events-none" />
+      <section id="how-it-works" className="py-32 relative overflow-hidden bg-white/[0.02] backdrop-blur-2xl">
 
         <div className="container mx-auto px-4 relative z-10">
           <motion.div
@@ -298,7 +320,7 @@ export default function Home() {
 
           <div className="grid md:grid-cols-3 gap-16 max-w-7xl mx-auto relative px-4">
             {/* Connecting Line */}
-            <div className="hidden md:block absolute top-[100px] left-[20%] right-[20%] h-[2px] bg-gradient-to-r from-transparent via-border to-transparent -z-10" />
+            {/* Connecting Line REMOVED */}
 
             {[
               { step: '01', title: 'Scan or Upload', desc: 'Take a clear photo of ingredients.', icon: ScanLine },
