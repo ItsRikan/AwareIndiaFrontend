@@ -12,6 +12,7 @@ import { Menu, X, User, LogOut, ScanLine, Home, History, GitCompare, ChevronDown
 import { useState, useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 export function NavBar() {
   const { user, isAuthenticated, logout } = useAuth();
@@ -53,9 +54,9 @@ export function NavBar() {
       transition={{ duration: 0.5 }}
     >
       <div className={cn(
-        "container mx-auto px-6 h-16 rounded-full flex items-center justify-between transition-all duration-300",
+        "container mx-auto px-6 h-18 rounded-[2rem] flex items-center justify-between transition-all duration-500",
         scrolled
-          ? "bg-black/50 backdrop-blur-xl border border-white/10 shadow-lg max-w-5xl"
+          ? "glass-card-premium border-white/20 shadow-2xl max-w-5xl translate-y-2 scale-[1.02]"
           : "bg-transparent max-w-6xl"
       )}>
 
@@ -65,17 +66,17 @@ export function NavBar() {
           className="flex items-center gap-2 group"
           aria-label="Aware India Home"
         >
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary via-primary/80 to-accent flex items-center justify-center shadow-lg shadow-primary/20 group-hover:scale-110 transition-transform duration-300">
-            <ScanLine className="w-5 h-5 text-white" />
+          <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-primary via-primary/80 to-accent flex items-center justify-center shadow-lg shadow-primary/30 group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
+            <ScanLine className="w-6 h-6 text-white" />
           </div>
-          <span className="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70">
+          <span className="text-2xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-r from-foreground via-foreground to-foreground/60 font-display">
             Aware India
           </span>
         </Link>
 
         {/* Desktop Navigation */}
-        <nav className="hidden md:flex items-center gap-1">
-          <div className="flex items-center bg-white/5 rounded-full p-1 border border-white/5 mr-4 backdrop-blur-sm">
+        <nav className="hidden md:flex items-center gap-4">
+          <div className="flex items-center bg-white/5 rounded-full p-1 border border-white/5 backdrop-blur-sm">
             {visibleLinks.map(link => (
               <Link
                 key={link.href}
@@ -84,13 +85,15 @@ export function NavBar() {
                   "relative px-4 py-2 rounded-full text-sm font-medium transition-all duration-300",
                   location.pathname === link.href
                     ? "text-primary bg-primary/10 shadow-[0_0_10px_rgba(34,197,94,0.1)]"
-                    : "text-muted-foreground hover:text-white hover:bg-white/5"
+                    : "text-muted-foreground hover:text-foreground hover:bg-white/5"
                 )}
               >
                 {link.label}
               </Link>
             ))}
           </div>
+
+          <ThemeToggle />
 
           {isAuthenticated ? (
             <DropdownMenu>
@@ -103,7 +106,7 @@ export function NavBar() {
                   <ChevronDown className="w-3 h-3 text-muted-foreground group-hover:rotate-180 transition-transform duration-300" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 mt-2 p-2 rounded-2xl border-white/10 bg-black/80 backdrop-blur-xl shadow-2xl">
+              <DropdownMenuContent align="end" className="w-56 mt-2 p-2 rounded-2xl border-white/10 bg-background/80 backdrop-blur-xl shadow-2xl">
                 <DropdownMenuItem asChild className="rounded-xl focus:bg-white/10 cursor-pointer">
                   <Link to="/profile" className="flex items-center gap-2 py-2.5">
                     <User className="w-4 h-4 text-primary" />
@@ -121,11 +124,11 @@ export function NavBar() {
             <div className="flex items-center gap-3">
               <Link
                 to="/login"
-                className="text-sm font-medium text-muted-foreground hover:text-white transition-colors"
+                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
               >
                 Login
               </Link>
-              <Button size="sm" asChild className="h-9 px-5 rounded-full bg-white text-black hover:bg-gray-200 transition-colors font-medium">
+              <Button size="sm" asChild className="h-9 px-5 rounded-full bg-primary text-primary-foreground hover:opacity-90 transition-opacity font-medium">
                 <Link to="/login?tab=signup">Get Started</Link>
               </Button>
             </div>
@@ -133,12 +136,15 @@ export function NavBar() {
         </nav>
 
         {/* Mobile Menu Button */}
-        <button
-          className="md:hidden p-2 text-foreground active:scale-95 transition-transform"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-        >
-          {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-        </button>
+        <div className="flex items-center gap-2 md:hidden">
+          <ThemeToggle />
+          <button
+            className="p-2 text-foreground active:scale-95 transition-transform"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+          >
+            {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile Navigation Overlay */}
@@ -149,7 +155,7 @@ export function NavBar() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -20, scale: 0.95 }}
             transition={{ duration: 0.2 }}
-            className="absolute top-24 left-4 right-4 bg-black/90 backdrop-blur-2xl border border-white/10 rounded-3xl p-4 shadow-2xl md:hidden overflow-hidden"
+            className="absolute top-24 left-4 right-4 bg-background/90 backdrop-blur-2xl border border-white/10 rounded-3xl p-4 shadow-2xl md:hidden overflow-hidden"
           >
             <div className="flex flex-col gap-2">
               {visibleLinks.map(link => (
@@ -197,7 +203,7 @@ export function NavBar() {
                   <Button variant="outline" asChild className="w-full rounded-xl h-12 border-white/10 hover:bg-white/5">
                     <Link to="/login" onClick={() => setMobileMenuOpen(false)}>Login</Link>
                   </Button>
-                  <Button asChild className="w-full rounded-xl h-12 bg-white text-black hover:bg-gray-200">
+                  <Button asChild className="w-full rounded-xl h-12 bg-primary text-primary-foreground hover:opacity-90">
                     <Link to="/login?tab=signup" onClick={() => setMobileMenuOpen(false)}>Sign Up</Link>
                   </Button>
                 </div>

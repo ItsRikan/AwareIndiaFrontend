@@ -22,6 +22,8 @@ import { compressImage, createImagePreview, revokeImagePreview } from '@/lib/ima
 import { CompareResult, SCAN_CATEGORIES, ScanCategory } from '@/types';
 import { GitCompare, AlertCircle, Info, Sparkles, Scale, ArrowRightLeft, Target, Zap } from 'lucide-react';
 import { toast } from 'sonner';
+import { Magnetic } from '@/components/Magnetic';
+import { InteractiveBackground } from '@/components/InteractiveBackground';
 
 type CompareState = 'idle' | 'uploading' | 'comparing' | 'complete' | 'error';
 
@@ -185,7 +187,8 @@ export default function Compare() {
     }
 
     return (
-        <div className="min-h-screen flex flex-col bg-background relative overflow-hidden">
+        <div className="min-h-screen flex flex-col bg-background relative overflow-hidden selection:bg-primary/20">
+            <InteractiveBackground />
             <NavBar />
 
             {/* Background Ambience */}
@@ -248,14 +251,14 @@ export default function Compare() {
                                 className="grid gap-8 lg:grid-cols-[2fr,1fr]"
                             >
                                 {/* Left Column: Dual Upload */}
-                                <div className="bg-card/40 backdrop-blur-md rounded-3xl border border-white/10 p-6 md:p-8 shadow-xl relative overflow-hidden">
-                                    <div className="flex items-center gap-3 mb-6">
-                                        <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-                                            <ArrowRightLeft className="w-5 h-5 text-primary" />
+                                <div className="glass-card-premium rounded-[2.5rem] p-8 md:p-10 shadow-2xl relative overflow-hidden border-white/10">
+                                    <div className="flex items-center gap-4 mb-8">
+                                        <div className="h-12 w-12 rounded-2xl bg-primary/20 flex items-center justify-center border border-primary/30">
+                                            <ArrowRightLeft className="w-6 h-6 text-primary" />
                                         </div>
                                         <div>
-                                            <h2 className="text-lg font-semibold">Product Comparison</h2>
-                                            <p className="text-sm text-muted-foreground">Upload both products to compare</p>
+                                            <h2 className="text-xl font-bold font-display">Product Comparison</h2>
+                                            <p className="text-sm text-muted-foreground">Upload both products to find the healthier choice</p>
                                         </div>
                                     </div>
 
@@ -343,25 +346,27 @@ export default function Compare() {
                                             )}
                                         </AnimatePresence>
 
-                                        <Button
-                                            size="lg"
-                                            className="w-full h-14 text-lg rounded-xl shadow-lg shadow-primary/25 hover:shadow-primary/40 hover:scale-[1.02] transition-all duration-300 relative overflow-hidden group"
-                                            onClick={handleCompare}
-                                            disabled={!canCompare}
-                                        >
-                                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
-                                            {compareState === 'uploading' || compareState === 'comparing' ? (
-                                                <>
-                                                    <Sparkles className="w-5 h-5 mr-2 animate-spin" />
-                                                    Comparing...
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <Scale className="w-5 h-5 mr-2" />
-                                                    Compare Now
-                                                </>
-                                            )}
-                                        </Button>
+                                        <Magnetic strength={0.1}>
+                                            <Button
+                                                size="lg"
+                                                className="w-full h-16 text-xl rounded-2xl shadow-2xl shadow-primary/20 hover:shadow-primary/40 hover:scale-[1.02] transition-all duration-500 relative overflow-hidden group"
+                                                onClick={handleCompare}
+                                                disabled={!canCompare}
+                                            >
+                                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+                                                {compareState === 'uploading' || compareState === 'comparing' ? (
+                                                    <>
+                                                        <Sparkles className="w-6 h-6 mr-3 animate-spin" />
+                                                        Comparing...
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <Scale className="w-6 h-6 mr-3" />
+                                                        Compare Now
+                                                    </>
+                                                )}
+                                            </Button>
+                                        </Magnetic>
                                     </div>
                                 </div>
                             </motion.div>

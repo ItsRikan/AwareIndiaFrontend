@@ -1,4 +1,6 @@
 import { cn } from '@/lib/utils';
+import { motion, useSpring, useTransform, animate } from 'framer-motion';
+import { useEffect, useState } from 'react';
 
 interface HealthScoreBadgeProps {
   score: number;
@@ -7,11 +9,11 @@ interface HealthScoreBadgeProps {
   className?: string;
 }
 
-export function HealthScoreBadge({ 
-  score, 
-  size = 'md', 
+export function HealthScoreBadge({
+  score,
+  size = 'md',
   showLabel = false,
-  className 
+  className
 }: HealthScoreBadgeProps) {
   const getScoreColor = (s: number) => {
     if (s >= 7) return 'score-badge-good';
@@ -104,11 +106,11 @@ interface RadialScoreProps {
   className?: string;
 }
 
-export function RadialScore({ 
-  score, 
-  size = 120, 
+export function RadialScore({
+  score,
+  size = 120,
   strokeWidth = 8,
-  className 
+  className
 }: RadialScoreProps) {
   const radius = (size - strokeWidth) / 2;
   const circumference = radius * 2 * Math.PI;
@@ -127,7 +129,7 @@ export function RadialScore({
   };
 
   return (
-    <div 
+    <div
       className={cn('relative inline-flex items-center justify-center', className)}
       style={{ width: size, height: size }}
     >
@@ -157,14 +159,34 @@ export function RadialScore({
       </svg>
       {/* Center text */}
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span 
-          className="text-3xl font-bold"
-          style={{ color: getColor(score) }}
+        <motion.span
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-3xl font-bold font-display"
+          style={{
+            color: getColor(score),
+            textShadow: `0 0 20px ${getColor(score)}44`
+          }}
         >
-          {score}
-        </span>
-        <span className="text-xs text-muted-foreground">{getLabel(score)}</span>
+          <AnimatedNumber value={score} />
+        </motion.span>
+        <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-medium">{getLabel(score)}</span>
       </div>
     </div>
   );
+}
+
+function AnimatedNumber({ value }: { value: number }) {
+  const [displayValue, setDisplayValue] = useState(0);
+
+  useEffect(() => {
+    const controls = animate(0, value, {
+      duration: 1.5,
+      ease: "easeOut",
+      onUpdate: (latest) => setDisplayValue(Number(latest.toFixed(1))),
+    });
+    return () => controls.stop();
+  }, [value]);
+
+  return <>{displayValue}</>;
 }
